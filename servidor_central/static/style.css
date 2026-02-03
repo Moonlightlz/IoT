@@ -1,0 +1,60 @@
+/*
+ * Hoja de estilos personalizada para el Panel de Control
+ */
+
+body {
+    background-color: #212529; /* Un fondo oscuro pero no negro puro */
+}
+
+.log-console {
+    background-color: #1a1a1a;
+    color: #f0f0f0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    padding: 15px;
+    border-radius: 5px;
+    height: 300px;
+    overflow-y: auto; /* Permite scroll vertical */
+    border: 1px solid #444;
+    white-space: pre-wrap;       /* CSS3 */
+    white-space: -moz-pre-wrap;  /* Firefox */
+    white-space: -pre-wrap;      /* Opera <7 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer */
+}
+
+.status-indicator {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background-color: #495057; /* Color por defecto (apagado) */
+    border: 2px solid #6c757d;
+    transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.status-indicator.on {
+    background-color: #007bff; /* Color azul para encendido */
+    border-color: #80bdff;
+    box-shadow: 0 0 10px #007bff, 0 0 5px #007bff;
+}
+
+.card-header i {
+    margin-right: 8px;
+}
+
+/* Animación para el botón de grabación */
+.recording {
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
