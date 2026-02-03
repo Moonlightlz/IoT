@@ -129,3 +129,46 @@ Maneja la interacción del usuario y las llamadas asíncronas al backend.
 
 ### 6.4. Manejo de Errores de IA
 *   El módulo `gestion_ia.py` incluye lógica de recuperación ("parches") para corregir JSONs mal formados que a veces devuelve el modelo de lenguaje (ej: falta de llaves de cierre).
+
+---
+
+## 7. Guía de Instalación y Ejecución Paso a Paso
+
+### 7.1. Prerrequisitos
+1.  **Python 3.x**: Asegúrese de tener Python instalado y agregado al PATH del sistema.
+2.  **FFmpeg**: Necesario para el procesamiento de audio (`pydub`).
+    *   Descargar y agregar la carpeta `bin` a las variables de entorno (PATH).
+3.  **Ollama**: Descargar e instalar desde ollama.com.
+
+### 7.2. Configuración de Ollama (IA Local)
+Es crucial ejecutar Ollama como servidor para ver los logs de inferencia y asegurar que la API esté escuchando correctamente.
+
+1.  Abra una terminal (CMD o PowerShell).
+2.  Ejecute el siguiente comando para iniciar el servidor y ver los logs en tiempo real:
+    ```bash
+    ollama serve
+    ```
+    *Mantenga esta terminal abierta en segundo plano. Aquí verá cuándo el modelo se carga y procesa tokens.*
+3.  Abra una **nueva** terminal y descargue el modelo Llama 3 (si no lo ha hecho antes):
+    ```bash
+    ollama pull llama3
+    ```
+
+### 7.3. Instalación del Servidor Central
+1.  Navegue a la carpeta del servidor central en su terminal:
+    ```bash
+    cd ruta/al/proyecto/servidor_central
+    ```
+2.  Instale las librerías de Python necesarias:
+    ```bash
+    pip install Flask Flask-CORS requests SpeechRecognition pydub
+    ```
+
+### 7.4. Ejecución del Sistema
+1.  Conecte el hardware (ESP32) y asegúrese de que esté en la misma red WiFi.
+2.  En la terminal del proyecto, inicie la aplicación Flask:
+    ```bash
+    python app.py
+    ```
+3.  Abra un navegador web e ingrese a la siguiente dirección para ver el panel de control:
+    `http://localhost:5000`
