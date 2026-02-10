@@ -1,60 +1,440 @@
-/*
- * Hoja de estilos personalizada para el Panel de Control
- */
+/* =================================
+   WASI - Futuristic IoT Panel CSS
+   ================================= */
+
+:root {
+    --wasi-primary: #00d4ff;
+    --wasi-secondary: #ff006e;
+    --wasi-bg-primary: #0a0e27;
+    --wasi-bg-secondary: #16213e;
+    --wasi-bg-tertiary: #1a2a48;
+    --wasi-text-primary: #e0e6ff;
+    --wasi-text-secondary: #a0afc9;
+    --wasi-accent: #00ff88;
+    --wasi-danger: #ff006e;
+    --wasi-warning: #ffbe0b;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 body {
-    background-color: #212529; /* Un fondo oscuro pero no negro puro */
+    background: linear-gradient(135deg, var(--wasi-bg-primary) 0%, var(--wasi-bg-secondary) 100%);
+    background-attachment: fixed;
+    color: var(--wasi-text-primary);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
 }
 
-.log-console {
-    background-color: #1a1a1a;
-    color: #f0f0f0;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9rem;
-    padding: 15px;
-    border-radius: 5px;
-    height: 300px;
-    overflow-y: auto; /* Permite scroll vertical */
-    border: 1px solid #444;
-    white-space: pre-wrap;       /* CSS3 */
-    white-space: -moz-pre-wrap;  /* Firefox */
-    white-space: -pre-wrap;      /* Opera <7 */
-    white-space: -o-pre-wrap;    /* Opera 7 */
-    word-wrap: break-word;       /* Internet Explorer */
+/* ==================== NAVBAR ==================== */
+.navbar-wasi {
+    background: linear-gradient(90deg, rgba(16, 14, 39, 0.8) 0%, rgba(22, 33, 62, 0.8) 100%) !important;
+    border-bottom: 2px solid var(--wasi-primary);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.status-indicator {
-    width: 25px;
-    height: 25px;
+.wasi-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700 !important;
+    transition: all 0.3s ease;
+}
+
+.wasi-brand:hover {
+    transform: translateX(5px);
+    text-shadow: 0 0 20px var(--wasi-primary);
+}
+
+.wasi-logo {
+    font-size: 28px;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.wasi-title {
+    font-size: 24px;
+    color: var(--wasi-primary);
+    letter-spacing: 3px;
+}
+
+.wasi-subtitle {
+    font-size: 12px;
+    color: var(--wasi-text-secondary);
+    margin-left: 5px;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { text-shadow: 0 0 10px var(--wasi-primary), 0 0 20px rgba(0, 212, 255, 0.5); }
+    50% { text-shadow: 0 0 20px var(--wasi-primary), 0 0 40px rgba(0, 212, 255, 0.8); }
+}
+
+/* ==================== MAIN CONTAINER ==================== */
+.wasi-container {
+    padding: 30px 20px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.wasi-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+}
+
+@media (max-width: 1024px) {
+    .wasi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==================== CARDS ==================== */
+.wasi-card {
+    background: linear-gradient(135deg, var(--wasi-bg-secondary) 0%, var(--wasi-bg-tertiary) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+.wasi-card:hover {
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2), inset 0 0 20px rgba(0, 212, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.wasi-card-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+    background: linear-gradient(90deg, rgba(0, 212, 255, 0.05) 0%, transparent 100%);
+}
+
+.wasi-card-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--wasi-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 1px;
+}
+
+.wasi-card-header i {
+    font-size: 22px;
+}
+
+.wasi-card-body {
+    padding: 20px;
+}
+
+/* ==================== COMMAND INPUT ==================== */
+.command-input-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.wasi-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    color: var(--wasi-text-primary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-family: 'Courier New', monospace;
+}
+
+.wasi-input:focus {
+    outline: none;
+    background: rgba(0, 212, 255, 0.1);
+    border-color: var(--wasi-primary);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3), inset 0 0 10px rgba(0, 212, 255, 0.1);
+}
+
+.wasi-input::placeholder {
+    color: var(--wasi-text-secondary);
+}
+
+/* ==================== BUTTONS ==================== */
+.wasi-btn {
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.wasi-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
     border-radius: 50%;
-    background-color: #495057; /* Color por defecto (apagado) */
-    border: 2px solid #6c757d;
-    transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
 }
 
-.status-indicator.on {
-    background-color: #007bff; /* Color azul para encendido */
-    border-color: #80bdff;
-    box-shadow: 0 0 10px #007bff, 0 0 5px #007bff;
+.wasi-btn:active::before {
+    width: 300px;
+    height: 300px;
 }
 
-.card-header i {
-    margin-right: 8px;
+.wasi-btn.btn-primary {
+    background: linear-gradient(135deg, var(--wasi-primary) 0%, #00a8cc 100%);
+    color: var(--wasi-bg-primary);
+    border-color: var(--wasi-primary);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Animación para el botón de grabación */
-.recording {
-    animation: pulse-red 1.5s infinite;
+.wasi-btn.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 212, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-@keyframes pulse-red {
-    0% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
-    }
+.wasi-btn.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.wasi-btn.btn-voice {
+    background: rgba(255, 0, 110, 0.1);
+    border: 1px solid var(--wasi-danger);
+    color: var(--wasi-danger);
+}
+
+.wasi-btn.btn-voice:hover:not(.recording) {
+    background: rgba(255, 0, 110, 0.2);
+    box-shadow: 0 0 15px rgba(255, 0, 110, 0.4);
+}
+
+.wasi-btn.btn-voice.recording {
+    background: var(--wasi-danger);
+    color: white;
+    animation: pulse-danger 1s infinite;
+}
+
+.wasi-btn.btn-device {
+    padding: 6px 12px;
+    font-size: 11px;
+    margin: 0 4px;
+}
+
+.wasi-btn.btn-device.btn-on {
+    background: rgba(0, 255, 136, 0.15);
+    border: 1px solid var(--wasi-accent);
+    color: var(--wasi-accent);
+}
+
+.wasi-btn.btn-device.btn-on:hover:not(:disabled) {
+    background: rgba(0, 255, 136, 0.3);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+.wasi-btn.btn-device.btn-off {
+    background: rgba(255, 0, 110, 0.15);
+    border: 1px solid var(--wasi-danger);
+    color: var(--wasi-danger);
+}
+
+.wasi-btn.btn-device.btn-off:hover:not(:disabled) {
+    background: rgba(255, 0, 110, 0.3);
+    box-shadow: 0 0 15px rgba(255, 0, 110, 0.5);
+}
+
+.wasi-btn.btn-sensor {
+    background: rgba(160, 175, 201, 0.15);
+    border: 1px solid var(--wasi-text-secondary);
+    color: var(--wasi-text-secondary);
+    padding: 6px 12px;
+    font-size: 11px;
+}
+
+.wasi-btn.btn-sensor:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+@keyframes pulse-danger {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 110, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(255, 0, 110, 0); }
+}
+
+/* ==================== LOGS ==================== */
+.wasi-logs {
+    background: rgba(10, 14, 39, 0.8);
+    color: var(--wasi-accent);
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.5;
+    box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.05);
+}
+
+.wasi-logs::-webkit-scrollbar {
+    width: 8px;
+}
+
+.wasi-logs::-webkit-scrollbar-track {
+    background: rgba(0, 212, 255, 0.05);
+    border-radius: 4px;
+}
+
+.wasi-logs::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.3);
+    border-radius: 4px;
+}
+
+.wasi-logs::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 255, 0.5);
+}
+
+.log-success { color: var(--wasi-accent); }
+.log-error { color: var(--wasi-danger); }
+.log-warning { color: var(--wasi-warning); }
+.log-info { color: var(--wasi-primary); }
+
+/* ==================== DEVICE CONTROLS ==================== */
+.wasi-device-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wasi-device-item {
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.wasi-device-item:last-child {
+    border-bottom: none;
+}
+
+.wasi-device-item:hover {
+    background: rgba(0, 212, 255, 0.05);
+}
+
+.device-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--wasi-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.device-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: space-between;
+}
+
+.device-status {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(160, 175, 201, 0.2);
+    border: 2px solid var(--wasi-text-secondary);
+    transition: all 0.3s ease;
+}
+
+.device-status.on {
+    background: radial-gradient(circle, var(--wasi-accent) 0%, rgba(0, 255, 136, 0.3) 100%);
+    border-color: var(--wasi-accent);
+    box-shadow: 0 0 15px var(--wasi-accent), inset 0 0 10px rgba(0, 255, 136, 0.3);
+    animation: pulse-active 2s infinite;
+}
+
+@keyframes pulse-active {
+    0%, 100% { box-shadow: 0 0 15px var(--wasi-accent), inset 0 0 10px rgba(0, 255, 136, 0.3); }
+    50% { box-shadow: 0 0 25px var(--wasi-accent), inset 0 0 15px rgba(0, 255, 136, 0.5); }
+}
+
+/* ==================== SENSORS ==================== */
+.wasi-sensor-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wasi-sensor-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.wasi-sensor-item:last-child {
+    border-bottom: none;
+}
+
+.wasi-sensor-item:hover {
+    background: rgba(0, 212, 255, 0.05);
+}
+
+.sensor-name {
+    font-size: 13px;
+    color: var(--wasi-text-secondary);
+}
+
+/* ==================== CARD DESCRIPTIONS ==================== */
+.card-description {
+    font-size: 13px;
+    color: var(--wasi-text-secondary);
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+/* ==================== SPINNER ==================== */
+.spinner-border-sm {
+    margin-left: 8px;
+}
+
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 212, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 255, 0.3);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 255, 0.5);
 }

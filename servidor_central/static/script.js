@@ -1,5 +1,5 @@
 /**
- * Lógica del frontend para el panel de control de la Casa Inteligente.
+ * Lógica del frontend para WASI - Panel de Administración IoT.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
