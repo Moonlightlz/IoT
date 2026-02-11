@@ -1,27 +1,4 @@
-/*
- * FIRMWARE PARA LA PASARELA DE LA CASA INTELIGENTE (ESP32)
- *
- * Descripción:
- * Este código convierte al ESP32 en un punto de acceso Wi-Fi y un servidor web.
- * Permite controlar un LED conectado a un pin a través de peticiones HTTP.
- *
- * Funcionalidades:
- * 1. Crea una red Wi-Fi con el nombre (SSID) "CASA_INTELIGENTE_AP".
- * 2. Asigna al ESP32 la dirección IP estática 192.168.4.1.
- * 3. Inicia un servidor web en el puerto 80.
- * 4. Responde a las siguientes rutas:
- *    - http://192.168.4.1/led/on  -> Encender el LED
- *    - http://192.168.4.1/led/off -> Apagar el LED
- *    - http://192.168.4.1/        -> Mensaje de estado
- *
- * Requisitos de hardware:
- * - Placa de desarrollo ESP32.
- * - Un LED conectado al pin 2 (o el pin que se defina en 'PIN_LED_AZUL').
- * - Una resistencia de ~220-330 ohms en serie con el LED.
- *
- * Autor: Asistente Gemini
- * Fecha: 28-01-2026
- */
+
 
 // --- Inclusión de Librerías ---
 #include <WiFi.h>
