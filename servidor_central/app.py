@@ -127,6 +127,9 @@ def handle_voice_command():
             
     except Exception as e:
         traceback.print_exc() # Muestra el error real en la terminal del servidor
+        # Detectar error de conexión al intentar descargar el modelo por primera vez
+        if "getaddrinfo failed" in str(e):
+            logs.append("[ERROR_RED] Se requiere internet la primera vez para descargar el modelo Whisper.")
         logs.append(f"[ERROR_VOZ] Fallo al procesar audio: {repr(e)}")
         return jsonify({"status": "error", "message": str(e), "logs": logs}), 500
 

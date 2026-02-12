@@ -40,12 +40,13 @@ def procesar_comando_voz(texto_usuario, logs):
     lugares_validos = ['descanso', 'cocina', 'principal', 'cochera', 'habitacion']
     prompt_estructurado = (
         "Eres un asistente de domótica. Analiza la orden y desglósala en acciones individuales. "
-        f"Lugares disponibles: {', '.join(lugares_validos)} y 'todas'. "
+        "Lugares disponibles (usa el código entre paréntesis): Dormitorio (descanso), Cocina (cocina), Sala principal (principal), Cochera (cochera), Sala de descanso (habitacion) y Todas (todas). "
         "Reglas: "
         "1. Si la orden afecta a varios lugares (ej: 'cocina y sala'), genera una acción para cada uno. "
         "2. Si la orden es excluyente (ej: 'todas menos cocina'), genera acciones individuales para el resto de lugares. "
         "3. Tu respuesta debe ser ESTRICTAMENTE un objeto JSON con la clave 'acciones' que contenga una lista. "
-        "Formato JSON: {\"acciones\": [{\"accion\": \"ON\"|\"OFF\", \"lugar\": \"nombre_lugar\"}, ...]} "
+        "4. IMPORTANTE: En el campo 'lugar' usa SOLO el código interno (ej: 'descanso', 'habitacion'), NUNCA el nombre visual. "
+        "Formato JSON: {\"acciones\": [{\"accion\": \"ON\"|\"OFF\", \"lugar\": \"codigo_interno\"}, ...]} "
         "No incluyas texto fuera del JSON. "
         f"La orden es: '{texto_usuario}'"
     )
@@ -118,6 +119,9 @@ def procesar_comando_voz(texto_usuario, logs):
         else:
             log_ia(f"Error en la comunicación con la API de Ollama. Código: {response.status_code}", logs)
             log_ia(f"Respuesta del servidor: {response.text}", logs)
+            if response.status_code == 404 and "model" in response.text and "not found" in response.text:
+                log_ia(f"[SOLUCION] El modelo '{MODELO_LLAMA}' no está instalado.", logs)
+                log_ia(f"[SOLUCION] Abre una terminal y ejecuta: ollama pull {MODELO_LLAMA}", logs)
             return {'acciones': []}
             
     except requests.exceptions.RequestException as e:

@@ -50,9 +50,9 @@ Debido a la configuración física actual, existe una diferencia entre el nombre
 | :--- | :--- |
 | **Dormitorio** | `descanso` |
 | **Cocina** | `cocina` |
-| **Patio** | `principal` |
-| **Sala de Descanso** | `cochera` |
-| **Cochera** | `habitacion` |
+| **Sala principal** | `principal` |
+| **Cochera** | `cochera` |
+| **Sala de descanso** | `habitacion` |
 
 > **Nota:** Al realizar mantenimiento en el código, utilice siempre el **ID Interno**.
 
