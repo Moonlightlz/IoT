@@ -109,12 +109,20 @@
                     </div>
                     <ul class="wasi-sensor-list">
                         <li class="wasi-sensor-item">
-                            <span class="sensor-name">🌡️ Temperatura</span>
-                            <button class="wasi-btn btn-sensor" disabled>Próximamente</button>
+                            <span class="sensor-name">🌡️ Clima (DHT22)</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span id="temp-value" class="badge bg-primary" title="Temperatura">-- °C</span>
+                                <span id="hum-value" class="badge bg-info text-dark" title="Humedad">-- %</span>
+                            </div>
                         </li>
                         <li class="wasi-sensor-item">
-                            <span class="sensor-name">💨 Gas / Humo</span>
-                            <button class="wasi-btn btn-sensor" disabled>Próximamente</button>
+                            <div class="d-flex justify-content-between w-100 align-items-center mb-1">
+                                <span class="sensor-name">💨 Gas (MQ-2)</span>
+                                <span id="gas-value" class="badge bg-secondary">0</span>
+                            </div>
+                            <div class="progress w-100" style="height: 10px; background-color: #333;">
+                                <div id="gas-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                            </div>
                         </li>
                         <li class="wasi-sensor-item">
                             <span class="sensor-name">🔍 Movimiento</span>

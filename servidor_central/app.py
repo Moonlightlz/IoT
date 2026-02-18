@@ -13,6 +13,9 @@ from pydub import AudioSegment
 import io
 import traceback
 import time
+import threading
+import serial
+import re
 
 # --- Importaciones de Módulos Propios ---
 from control_red import controlar_maqueta
@@ -22,6 +25,50 @@ from gestion_ia import procesar_comando_voz
 app = Flask(__name__)
 # Habilitar CORS para permitir peticiones desde el frontend
 CORS(app)
+
+# --- Configuración Serial (Arduino - Sensor Gas) ---
+# IMPORTANTE: Cambia 'COM3' por el puerto USB real de tu Arduino
+ARDUINO_PORT = 'COM3' 
+ARDUINO_BAUD = 9600
+latest_gas_level = 0
+latest_temp = 0.0
+latest_hum = 0.0
+
+def leer_sensor_arduino():
+    """Hilo en segundo plano para leer el puerto serial sin bloquear Flask."""
+    global latest_gas_level, latest_temp, latest_hum
+    try:
+        ser = serial.Serial(ARDUINO_PORT, ARDUINO_BAUD, timeout=1)
+        print(f"[ARDUINO] Conectado exitosamente en {ARDUINO_PORT}")
+        while True:
+            if ser.in_waiting > 0:
+                try:
+                    linea = ser.readline().decode('utf-8', errors='ignore').strip()
+                    # [DEBUG] Imprimir lo que llega para verificar
+                    if linea: print(f"[SERIAL RAW] Recibido: '{linea}'")
+                    
+                    # Parsear línea: "Gas: 120 | Temp: 24.50C | Hum: 60.00%"
+                    
+                    # 1. Gas
+                    match_gas = re.search(r'Gas:\s*(\d+)', linea)
+                    if match_gas:
+                        latest_gas_level = int(match_gas.group(1))
+                    
+                    # 2. Temperatura
+                    match_temp = re.search(r'Temp:\s*([\d\.]+)', linea)
+                    if match_temp:
+                        latest_temp = float(match_temp.group(1))
+                        
+                    # 3. Humedad
+                    match_hum = re.search(r'Hum:\s*([\d\.]+)', linea)
+                    if match_hum:
+                        latest_hum = float(match_hum.group(1))
+                        
+                except Exception as e:
+                    print(f"[SERIAL ERROR] {e}")
+            time.sleep(0.1) # Pequeña pausa para no saturar CPU
+    except serial.SerialException as e:
+        print(f"[ADVERTENCIA] Error conectando al Arduino en {ARDUINO_PORT}: {e}")
 
 # --- Definición de Rutas de la API ---
 
@@ -162,10 +209,26 @@ def handle_device_control():
     
     return jsonify({"status": "success" if exito else "error", "resultados": resultados, "logs": logs})
 
+@app.route("/api/sensor/gas", methods=['GET'])
+def handle_gas_sensor():
+    """
+    Devuelve los últimos valores leídos de los sensores (Arduino).
+    """
+    return jsonify({
+        "status": "success", 
+        "level": latest_gas_level,
+        "temp": latest_temp,
+        "hum": latest_hum
+    })
+
 # --- Bloque de Ejecución ---
 if __name__ == "__main__":
+    # Iniciar el hilo de lectura serial aquí para evitar duplicidad de procesos
+    hilo_serial = threading.Thread(target=leer_sensor_arduino, daemon=True)
+    hilo_serial.start()
+
     # Iniciar el servidor de desarrollo de Flask
-    # El modo debug se activa para recargar automáticamente con los cambios.
-    # Se expone en la red local (host='0.0.0.0') para que otros dispositivos puedan acceder.
+    # IMPORTANTE: use_reloader=False es OBLIGATORIO al usar puertos Serial y Threads.
+    # Evita que Flask cree un proceso hijo que no pueda acceder al puerto COM.
     print("Iniciando servidor Flask en http://0.0.0.0:5000")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)

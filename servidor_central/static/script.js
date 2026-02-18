@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_URL = 'http://127.0.0.1:5000/api/command';
     const VOICE_API_URL = 'http://127.0.0.1:5000/api/voice-command';
     const DEVICE_CONTROL_URL = 'http://127.0.0.1:5000/api/device/control';
+    const GAS_API_URL = 'http://127.0.0.1:5000/api/sensor/gas';
 
     /**
      * Añade un mensaje de log a la consola del frontend.
@@ -248,6 +249,48 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // --- Lógica de Monitoreo de Gas (Polling) ---
+    const updateGasIndicator = async () => {
+        try {
+            const response = await fetch(GAS_API_URL);
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                const level = data.level;
+                const temp = data.temp;
+                const hum = data.hum;
+
+                // Actualizar Temperatura y Humedad
+                const tempBadge = document.getElementById('temp-value');
+                const humBadge = document.getElementById('hum-value');
+                if (tempBadge) tempBadge.textContent = `${temp} °C`;
+                if (humBadge) humBadge.textContent = `${hum} %`;
+
+                // Asumiendo lectura analógica de 0 a 1023
+                const percentage = Math.min((level / 1023) * 100, 100);
+                
+                const progressBar = document.getElementById('gas-progress');
+                const valueBadge = document.getElementById('gas-value');
+                
+                if (progressBar && valueBadge) {
+                    progressBar.style.width = `${percentage}%`;
+                    valueBadge.textContent = level;
+                    
+                    // Cambiar color según nivel de peligro
+                    progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+                    if (level < 300) progressBar.classList.add('bg-success');       // Seguro
+                    else if (level < 600) progressBar.classList.add('bg-warning');  // Precaución
+                    else progressBar.classList.add('bg-danger');                    // Peligro
+                }
+            }
+        } catch (error) {
+            // Fallo silencioso para no saturar logs si el servidor cae momentáneamente
+        }
+    };
+
+    // Consultar sensor cada 2 segundos
+    setInterval(updateGasIndicator, 2000);
 
     // --- Event Listeners ---
     sendBtn.addEventListener('click', sendCommand);
