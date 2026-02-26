@@ -15,6 +15,7 @@ import traceback
 import time
 import threading
 import serial
+import serial.tools.list_ports
 import re
 
 # --- Importaciones de Módulos Propios ---
@@ -28,26 +29,31 @@ CORS(app)
 
 # --- Configuración Serial (Arduino - Sensor Gas) ---
 # IMPORTANTE: Cambia 'COM3' por el puerto USB real de tu Arduino
-ARDUINO_PORT = 'COM3' 
+ARDUINO_PORT = 'COM4' 
 ARDUINO_BAUD = 9600
 latest_gas_level = 0
 latest_temp = 0.0
 latest_hum = 0.0
+latest_distance = 0
+
+# Variable global para la conexión serial
+arduino_serial = None
 
 def leer_sensor_arduino():
     """Hilo en segundo plano para leer el puerto serial sin bloquear Flask."""
-    global latest_gas_level, latest_temp, latest_hum
+    global latest_gas_level, latest_temp, latest_hum, latest_distance, arduino_serial
     try:
-        ser = serial.Serial(ARDUINO_PORT, ARDUINO_BAUD, timeout=1)
+        # Asignamos a la variable global para poder usarla en otras funciones
+        arduino_serial = serial.Serial(ARDUINO_PORT, ARDUINO_BAUD, timeout=1)
         print(f"[ARDUINO] Conectado exitosamente en {ARDUINO_PORT}")
         while True:
-            if ser.in_waiting > 0:
+            if arduino_serial.in_waiting > 0:
                 try:
-                    linea = ser.readline().decode('utf-8', errors='ignore').strip()
+                    linea = arduino_serial.readline().decode('utf-8', errors='ignore').strip()
                     # [DEBUG] Imprimir lo que llega para verificar
                     if linea: print(f"[SERIAL RAW] Recibido: '{linea}'")
                     
-                    # Parsear línea: "Gas: 120 | Temp: 24.50C | Hum: 60.00%"
+                    # Parsear línea: "Gas: 120 | Temp: 24.50C | Hum: 60.00% | Dist: 45"
                     
                     # 1. Gas
                     match_gas = re.search(r'Gas:\s*(\d+)', linea)
@@ -64,11 +70,24 @@ def leer_sensor_arduino():
                     if match_hum:
                         latest_hum = float(match_hum.group(1))
                         
+                    # 4. Distancia (HC-SR04)
+                    match_dist = re.search(r'Distancia:\s*(\d+)', linea)
+                    if match_dist:
+                        latest_distance = int(match_dist.group(1))
+                        print(f"[SENSOR DISTANCIA] Objeto a: {latest_distance} cm")
+
                 except Exception as e:
                     print(f"[SERIAL ERROR] {e}")
             time.sleep(0.1) # Pequeña pausa para no saturar CPU
     except serial.SerialException as e:
         print(f"[ADVERTENCIA] Error conectando al Arduino en {ARDUINO_PORT}: {e}")
+        if "Access is denied" in str(e) or "PermissionError" in str(e):
+            print(f"[SOLUCION] El puerto {ARDUINO_PORT} está ocupado. Cierra el 'Monitor Serie' del Arduino IDE o terminales anteriores.")
+
+        # Listar puertos disponibles para ayudar al usuario
+        puertos_disponibles = [p.device for p in serial.tools.list_ports.comports()]
+        print(f"[AYUDA] Puertos COM detectados en tu PC: {puertos_disponibles}")
+        print(f"[ACCION] Actualiza la variable 'ARDUINO_PORT' (línea 30) con uno de estos valores.")
 
 # --- Definición de Rutas de la API ---
 
@@ -209,6 +228,36 @@ def handle_device_control():
     
     return jsonify({"status": "success" if exito else "error", "resultados": resultados, "logs": logs})
 
+@app.route("/api/servo", methods=['POST'])
+def handle_servo_control():
+    """
+    Endpoint para controlar el servomotor conectado al Arduino.
+    Espera JSON: {"angle": 90}
+    """
+    data = request.json
+    angle = data.get('angle')
+    
+    if angle is None:
+        return jsonify({"status": "error", "message": "Falta el parámetro 'angle'"}), 400
+        
+    try:
+        # Convertir a entero y limitar rango (0-90)
+        angle = int(angle)
+        if angle < 0: angle = 0
+        if angle > 90: angle = 90
+
+        if arduino_serial and arduino_serial.is_open:
+            comando = f"SERVO:{angle}\n"
+            arduino_serial.write(comando.encode())
+            print(f"[ARDUINO SEND] Enviado comando servo: {comando.strip()}")
+            return jsonify({"status": "success", "angle": angle})
+        else:
+            return jsonify({"status": "error", "message": "Arduino no conectado"}), 500
+    except ValueError:
+        return jsonify({"status": "error", "message": "El ángulo debe ser un número entero"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route("/api/sensor/gas", methods=['GET'])
 def handle_gas_sensor():
     """
@@ -219,6 +268,16 @@ def handle_gas_sensor():
         "level": latest_gas_level,
         "temp": latest_temp,
         "hum": latest_hum
+    })
+
+@app.route("/api/distancia", methods=['GET'])
+def handle_distance_sensor():
+    """
+    Devuelve la distancia actual leída por el sensor de ultrasonido.
+    """
+    return jsonify({
+        "status": "success",
+        "distance": latest_distance
     })
 
 # --- Bloque de Ejecución ---

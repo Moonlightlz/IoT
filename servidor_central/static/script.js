@@ -11,10 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingSpinner = document.getElementById('loading-spinner');
     const logsOutput = document.getElementById('logs-output');
 
-    const API_URL = 'http://127.0.0.1:5000/api/command';
-    const VOICE_API_URL = 'http://127.0.0.1:5000/api/voice-command';
-    const DEVICE_CONTROL_URL = 'http://127.0.0.1:5000/api/device/control';
-    const GAS_API_URL = 'http://127.0.0.1:5000/api/sensor/gas';
+    // Usamos rutas relativas para que funcione igual en localhost o desde el móvil (IP)
+    const API_URL = '/api/command';
+    const VOICE_API_URL = '/api/voice-command';
+    const DEVICE_CONTROL_URL = '/api/device/control';
+    const GAS_API_URL = '/api/sensor/gas';
+    const DISTANCE_API_URL = '/api/distancia';
+    const SERVO_API_URL = '/api/servo';
 
     /**
      * Añade un mensaje de log a la consola del frontend.
@@ -250,6 +253,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // --- Lógica para Control de Servo (Slider) ---
+    const servoSlider = document.getElementById('servo-slider');
+    const servoValue = document.getElementById('servo-value');
+
+    if (servoSlider) {
+        servoSlider.addEventListener('change', async (e) => {
+            const angle = e.target.value;
+            servoValue.textContent = `${angle}°`;
+            logToConsole(`Ajustando servo a ${angle}°...`, 'info');
+
+            try {
+                const response = await fetch(SERVO_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ angle: angle })
+                });
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    logToConsole(`Error moviendo servo: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                logToConsole(`Error de conexión servo: ${error.message}`, 'error');
+            }
+        });
+        
+        // Actualizar etiqueta mientras se arrastra (sin enviar petición)
+        servoSlider.addEventListener('input', (e) => {
+            servoValue.textContent = `${e.target.value}°`;
+        });
+    }
+
     // --- Lógica de Monitoreo de Gas (Polling) ---
     const updateGasIndicator = async () => {
         try {
@@ -289,8 +323,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- Lógica de Monitoreo de Distancia (HC-SR04) ---
+    const updateDistanceIndicator = async () => {
+        try {
+            const response = await fetch(DISTANCE_API_URL);
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                const distance = data.distance; 
+                const badge = document.getElementById('distance-badge');
+
+                if (badge) {
+                    badge.textContent = `Distancia al objeto: ${distance} cm`;
+                    
+                    // Cambio de color según proximidad
+                    if (distance < 10) {
+                        badge.className = "badge bg-danger"; // Muy cerca
+                    } else if (distance < 50) {
+                        badge.className = "badge bg-warning text-dark"; // Cerca
+                    } else {
+                        badge.className = "badge bg-success"; // Lejos
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error obteniendo distancia:", error);
+        }
+    };
+
     // Consultar sensor cada 2 segundos
-    setInterval(updateGasIndicator, 2000);
+    setInterval(updateGasIndicator, 1000);
+    setInterval(updateDistanceIndicator, 1000); 
 
     // --- Event Listeners ---
     sendBtn.addEventListener('click', sendCommand);
