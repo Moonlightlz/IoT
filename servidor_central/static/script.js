@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const GAS_API_URL = '/api/sensor/gas';
     const DISTANCE_API_URL = '/api/distancia';
     const SERVO_API_URL = '/api/servo';
+    const ARDUINO_LED_API_URL = '/api/arduino/led';
 
     /**
      * Añade un mensaje de log a la consola del frontend.
@@ -283,6 +284,37 @@ document.addEventListener('DOMContentLoaded', () => {
             servoValue.textContent = `${e.target.value}°`;
         });
     }
+
+    // --- Lógica para Control Manual de Alarma (Arduino Pin 13) ---
+    const arduinoLedButtons = document.querySelectorAll('.btn-arduino-led');
+    arduinoLedButtons.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const accion = e.target.getAttribute('data-accion'); // 'ON' o 'OFF'
+            logToConsole(`Enviando comando Alarma Manual: ${accion}...`, 'info');
+
+            try {
+                const response = await fetch(ARDUINO_LED_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ state: accion })
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const statusIndicator = document.getElementById('status-alarma');
+                    if (statusIndicator) {
+                        if (accion === 'ON') statusIndicator.classList.add('on');
+                        else statusIndicator.classList.remove('on');
+                    }
+                    logToConsole(`Alarma Manual ${accion} exitosa.`, 'success');
+                } else {
+                    logToConsole(`Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                logToConsole(`Error de conexión alarma: ${error.message}`, 'error');
+            }
+        });
+    });
 
     // --- Lógica de Monitoreo de Gas (Polling) ---
     const updateGasIndicator = async () => {

@@ -258,6 +258,29 @@ def handle_servo_control():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route("/api/arduino/led", methods=['POST'])
+def handle_arduino_led():
+    """
+    Control manual del LED de alarma (Pin 13) en el Arduino.
+    Espera JSON: {"state": "ON"} o {"state": "OFF"}
+    """
+    data = request.json
+    state = data.get('state')
+    
+    if state not in ['ON', 'OFF']:
+        return jsonify({"status": "error", "message": "Estado inválido"}), 400
+        
+    try:
+        if arduino_serial and arduino_serial.is_open:
+            comando = "LED:1\n" if state == 'ON' else "LED:0\n"
+            arduino_serial.write(comando.encode())
+            print(f"[ARDUINO SEND] Enviado comando LED: {comando.strip()}")
+            return jsonify({"status": "success", "state": state})
+        else:
+            return jsonify({"status": "error", "message": "Arduino no conectado"}), 500
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route("/api/sensor/gas", methods=['GET'])
 def handle_gas_sensor():
     """
