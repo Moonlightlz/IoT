@@ -101,6 +101,7 @@ def index():
 # --- Función Auxiliar para Lógica de Domótica ---
 def ejecutar_logica_domotica(comando_usuario, logs):
     """Procesa el texto del comando y ejecuta la acción correspondiente."""
+    global arduino_serial
     # 2. Procesar el comando con el modelo de IA
     try:
         resultado_ia = procesar_comando_voz(comando_usuario, logs)
@@ -121,7 +122,19 @@ def ejecutar_logica_domotica(comando_usuario, logs):
         accion = item.get('accion', 'NONE').upper()
         lugar = item.get('lugar', 'unknown').lower()
         
-        if accion in ['ON', 'OFF']:
+        # --- Lógica Especial para ALARMA (Arduino) ---
+        if lugar == 'alarma' or lugar == 'alarmas':
+            try:
+                if arduino_serial and arduino_serial.is_open:
+                    comando = "LED:1\n" if accion == 'ON' else "LED:0\n"
+                    arduino_serial.write(comando.encode())
+                    logs.append(f"[ARDUINO] Comando de voz Alarma: {accion}")
+                    resultados_ejecucion.append({'accion': accion, 'lugar': 'alarma', 'exito': True})
+                    exito_global = True
+            except Exception as e:
+                logs.append(f"[ERROR] No se pudo controlar la alarma: {e}")
+        
+        elif accion in ['ON', 'OFF']:
             try:
                 logs.append(f"[SISTEMA] Ejecutando: {accion} en {lugar.upper()}")
                 exito = controlar_maqueta(lugar, accion, logs)

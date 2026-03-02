@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const DISTANCE_API_URL = '/api/distancia';
     const SERVO_API_URL = '/api/servo';
     const ARDUINO_LED_API_URL = '/api/arduino/led';
+    
+    // Control de Audio
+    const alarmAudio = document.getElementById('alarm-sound');
+    let isAlarmActive = false; // Estado global de la alarma
 
     /**
      * Añade un mensaje de log a la consola del frontend.
@@ -57,6 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 logToConsole(`Acción ${intention} aplicada en: ${lugar.toUpperCase()}.`, 'success');
             } else {
                 logToConsole(`Lugar desconocido o no visualizado: ${lugar}`, 'warning');
+            }
+        }
+    };
+
+    /**
+     * Gestiona la reproducción del sonido de alarma
+     */
+    const toggleAlarmSound = (shouldPlay) => {
+        if (shouldPlay) {
+            if (alarmAudio.paused) {
+                alarmAudio.play().catch(e => console.log("Interacción requerida para audio:", e));
+                document.body.classList.add('bg-danger'); // Efecto visual rojo en toda la pagina
+            }
+        } else {
+            if (!alarmAudio.paused) {
+                alarmAudio.pause();
+                alarmAudio.currentTime = 0;
+                document.body.classList.remove('bg-danger');
             }
         }
     };
@@ -101,6 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 result.resultados.forEach(res => {
                     if (res.exito) {
                         updateIndicators(res.accion, res.lugar);
+                        
+                        // Si la IA activó la alarma, encender sonido
+                        if (res.lugar === 'alarma' || res.lugar === 'alarmas') {
+                            isAlarmActive = (res.accion === 'ON');
+                            toggleAlarmSound(isAlarmActive);
+                        }
                     }
                 });
             } else if (result.status === 'failed') {
@@ -172,7 +200,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             if (result.resultados && Array.isArray(result.resultados)) {
                                 result.resultados.forEach(res => {
-                                    if (res.exito) updateIndicators(res.accion, res.lugar);
+                                    if (res.exito) {
+                                        updateIndicators(res.accion, res.lugar);
+                                        if (res.lugar === 'alarma' || res.lugar === 'alarmas') {
+                                            isAlarmActive = (res.accion === 'ON');
+                                            toggleAlarmSound(isAlarmActive);
+                                        }
+                                    }
                                 });
                                 
                             } else if (result.status === 'failed') {
@@ -307,6 +341,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         else statusIndicator.classList.remove('on');
                     }
                     logToConsole(`Alarma Manual ${accion} exitosa.`, 'success');
+                    
+                    // Activar/Desactivar sonido manual
+                    isAlarmActive = (accion === 'ON');
+                    toggleAlarmSound(isAlarmActive);
                 } else {
                     logToConsole(`Error: ${result.message}`, 'error');
                 }
@@ -349,6 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     else if (level < 600) progressBar.classList.add('bg-warning');  // Precaución
                     else progressBar.classList.add('bg-danger');                    // Peligro
                 }
+
+                // Lógica de Sonido Automático por Gas (> 400)
+                toggleAlarmSound(level > 400 || isAlarmActive);
             }
         } catch (error) {
             // Fallo silencioso para no saturar logs si el servidor cae momentáneamente
