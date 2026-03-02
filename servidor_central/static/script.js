@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Control de Audio
     const alarmAudio = document.getElementById('alarm-sound');
     let isAlarmActive = false; // Estado global de la alarma
+    let lastGasAlarmTime = 0;  // Marca de tiempo de la última detección de gas alto
 
     /**
      * Añade un mensaje de log a la consola del frontend.
@@ -388,8 +389,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     else progressBar.classList.add('bg-danger');                    // Peligro
                 }
 
-                // Lógica de Sonido Automático por Gas (> 400)
-                toggleAlarmSound(level > 400 || isAlarmActive);
+                // Lógica de Sonido Automático por Gas (> 400) con memoria (Histéresis)
+                // Si detectamos gas alto, guardamos el momento actual
+                if (level > 400) {
+                    lastGasAlarmTime = Date.now();
+                }
+
+                // La alarma suena si hay gas AHORA o si hubo gas hace menos de 5 segundos
+                const shouldPlayGasAlarm = (Date.now() - lastGasAlarmTime < 5000);
+                
+                toggleAlarmSound(shouldPlayGasAlarm || isAlarmActive);
             }
         } catch (error) {
             // Fallo silencioso para no saturar logs si el servidor cae momentáneamente
