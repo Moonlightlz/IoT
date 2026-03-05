@@ -37,10 +37,10 @@ def procesar_comando_voz(texto_usuario, logs):
     log_ia(f"Enviando consulta a {MODELO_LLAMA}: '{texto_usuario}'", logs)
 
     # Prompt diseñado para devolver una LISTA de acciones.
-    lugares_validos = ['descanso', 'cocina', 'principal', 'cochera', 'habitacion']
+    lugares_validos = ['descanso', 'cocina', 'principal', 'cochera', 'habitacion', 'puerta', 'alarma']
     prompt_estructurado = (
         "Eres un asistente de domótica. Analiza la orden y desglósala en acciones individuales. "
-        "Lugares disponibles (usa el código entre paréntesis): Dormitorio (descanso), Cocina (cocina), Sala principal (principal), Cochera (cochera), Sala de descanso (habitacion) y Todas (todas). "
+        "Lugares disponibles (usa el código entre paréntesis): Dormitorio (descanso), Cocina (cocina), Sala principal (principal), Cochera (cochera), Sala de descanso (habitacion), Puerta (puerta), Alarma (alarma) y Todas (todas). "
         "Reglas: "
         "1. Si la orden afecta a varios lugares (ej: 'cocina y sala'), genera una acción para cada uno. "
         "2. Si la orden es excluyente (ej: 'todas menos cocina'), genera acciones individuales para el resto de lugares. "

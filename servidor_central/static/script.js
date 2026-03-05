@@ -369,8 +369,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Actualizar Temperatura y Humedad
                 const tempBadge = document.getElementById('temp-value');
                 const humBadge = document.getElementById('hum-value');
-                if (tempBadge) tempBadge.textContent = `${temp} °C`;
-                if (humBadge) humBadge.textContent = `${hum} %`;
+                
+                if (tempBadge) {
+                    // Verificamos si temp es válido (no es null ni texto)
+                    if (temp === null || isNaN(temp)) {
+                        tempBadge.textContent = "Error";
+                        tempBadge.classList.replace('bg-primary', 'bg-danger');
+                    } else {
+                        // Ajuste visual: Restamos 5 grados solo si el dato es válido
+                        tempBadge.textContent = `${(temp - 5).toFixed(2)} °C`;
+                        tempBadge.classList.replace('bg-danger', 'bg-primary');
+                    }
+                }
+                
+                if (humBadge) humBadge.textContent = (hum === null || isNaN(hum)) ? "-- %" : `${hum} %`;
 
                 // Asumiendo lectura analógica de 0 a 1023
                 const percentage = Math.min((level / 1023) * 100, 100);

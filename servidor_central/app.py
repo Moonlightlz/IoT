@@ -61,14 +61,36 @@ def leer_sensor_arduino():
                         latest_gas_level = int(match_gas.group(1))
                     
                     # 2. Temperatura
-                    match_temp = re.search(r'Temp:\s*([\d\.]+)', linea)
+                    # Modificado para aceptar negativos y 'nan'
+                    match_temp = re.search(r'Temp:\s*([-\d\w\.]+)', linea)
                     if match_temp:
-                        latest_temp = float(match_temp.group(1))
+                        val_str = match_temp.group(1)
+                        # Limpiar unidad 'C' si fue capturada por el regex
+                        val_str = val_str.replace('C', '').replace('c', '').strip()
+                        
+                        # Si es 'nan', enviamos None (null en JSON) para no romper el frontend
+                        if 'nan' in val_str.lower():
+                            latest_temp = None
+                        else:
+                            try:
+                                latest_temp = float(val_str)
+                            except ValueError:
+                                latest_temp = None
                         
                     # 3. Humedad
-                    match_hum = re.search(r'Hum:\s*([\d\.]+)', linea)
+                    match_hum = re.search(r'Hum:\s*([-\d\w\.]+)', linea)
                     if match_hum:
-                        latest_hum = float(match_hum.group(1))
+                        val_str = match_hum.group(1)
+                        # Limpieza preventiva de '%'
+                        val_str = val_str.replace('%', '').strip()
+                        
+                        if 'nan' in val_str.lower():
+                            latest_hum = None
+                        else:
+                            try:
+                                latest_hum = float(val_str)
+                            except ValueError:
+                                latest_hum = None
                         
                     # 4. Distancia (HC-SR04)
                     match_dist = re.search(r'Distancia:\s*(\d+)', linea)
@@ -78,7 +100,9 @@ def leer_sensor_arduino():
 
                 except Exception as e:
                     print(f"[SERIAL ERROR] {e}")
-            time.sleep(0.1) # Pequeña pausa para no saturar CPU
+            else:
+                # Solo dormimos si no hay datos en el buffer, para leer lo más rápido posible
+                time.sleep(0.01)
     except serial.SerialException as e:
         print(f"[ADVERTENCIA] Error conectando al Arduino en {ARDUINO_PORT}: {e}")
         if "Access is denied" in str(e) or "PermissionError" in str(e):
@@ -134,6 +158,27 @@ def ejecutar_logica_domotica(comando_usuario, logs):
             except Exception as e:
                 logs.append(f"[ERROR] No se pudo controlar la alarma: {e}")
         
+        # --- Lógica Especial para PUERTA/SERVO (Arduino) ---
+        elif lugar == 'puerta' or lugar == 'servo':
+            try:
+                if arduino_serial and arduino_serial.is_open:
+                    # Mapeamos acciones: ON/OPEN -> 90, OFF/CLOSE -> 0
+                    if accion in ['ON', 'OPEN', 'ABRIR']:
+                        angulo = 90
+                    elif accion in ['OFF', 'CLOSE', 'CERRAR']:
+                        angulo = 0
+                    else:
+                        logs.append(f"[ADVERTENCIA] Acción '{accion}' no válida para puerta.")
+                        continue
+
+                    comando = f"SERVO:{angulo}\n"
+                    arduino_serial.write(comando.encode())
+                    logs.append(f"[ARDUINO] Comando de voz Puerta: {accion} -> {angulo}°")
+                    resultados_ejecucion.append({'accion': accion, 'lugar': 'puerta', 'exito': True})
+                    exito_global = True
+            except Exception as e:
+                logs.append(f"[ERROR] No se pudo controlar la puerta: {e}")
+
         elif accion in ['ON', 'OFF']:
             try:
                 logs.append(f"[SISTEMA] Ejecutando: {accion} en {lugar.upper()}")
